@@ -112,7 +112,7 @@ class Application(tk.Frame):
         tk.Label(text="   ").grid(column=8)
 
         ### Public post
-        self.label15 = tk.Label(text="Public post",fg='red').grid(row=0,column=9,sticky="w")
+        self.label15 = tk.Label(text="Search Post",fg='red').grid(row=0,column=9,sticky="w")
         # self.label_browse = tk.Label(text=" ")
         # self.label_browse.grid(row=1,column=4)
         # self.browse_group = tk.Button(text="Choose file",command=lambda: self.browseFiles(self.label_browse)).grid(row=1,column=3,sticky ="w")
