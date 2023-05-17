@@ -210,6 +210,7 @@ def scroll_dialog_to_bottom(driver):
         endViewElement = current_content_items[:-4][-1]
     del action1
     return content_items
+
 def get_crawling_infos(json_file):
     f = open(json_file,'r')
     info = json.load(f)
@@ -257,8 +258,6 @@ def save_to_excel(groupID,post_info,kw):
         gg_df = pd.concat([gg_df,out_df],ignore_index=True)
         gg_df = gg_df.iloc[:,1:]
         gg_df.to_excel(f"result/{kw}.xlsx")
-
-
 
 def exclude_by_kw(ex_kws,content):
     if any([ex_kw in content.lower() for ex_kw in ex_kws]):
@@ -517,7 +516,6 @@ def joinGroup(driver, idGoup):
     except:
         print("error join!")
 
-
 def crawlPostData(driver, postIds, type = 'page'):
     folderPath = "/data_crawl/"
     for id in postIds:
@@ -544,5 +542,116 @@ def crawlPostData(driver, postIds, type = 'page'):
         except:
             print("crawl fail")
 
+# Crawl public posts
+def getPublicPosts(driver, search_kw, start_day, end_day):
+    # All posts' info
+    final_infos = [[]]*8
 
+    # Dummy variables
+    flag = 1
+    
+    # Search by keyword
+    URL = f"https://www.facebook.com/search/posts/?q={search_kw}"
+    driver.get(URL)
+    sleep(random.randint(2, 5))
+    
+    # Sort posts by most recent
+    # Type 1
+    try:
+        sortByButton = driver.find_element_by_css_selector('[aria-label="Filter by Sort by"]')
+        sortByButton.click()
+        sleep(random.randint(2, 5))
+
+        mostRecentButton = driver.find_element_by_xpath('/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[2]/div/div/div[1]/div[1]/div/div/div/div/div[1]/div/div[2]')
+        mostRecentButton.click()
+        sleep(random.randint(2, 5))
+    except:
+        flag = 1
+
+    # Type 2:
+    try:
+        sortByButton = driver.find_element_by_css_selector('[aria-label="Recent Posts"]')
+        sortByButton.click()
+        sleep(random.randint(2, 5))
+    except:
+        flag = 2
+    
+    # Scroll page to load all posts
+    scroll_to_bottom(driver)
+        
+    # Collect posts
+    search_results = driver.find_element_by_css_selector('[aria-label="Search results"]')
+    feed = search_results.find_element_by_css_selector('[role="feed"]')
+    
+    soup = BeautifulSoup(feed.get_attribute("innerHTML"), "html.parser")
+    post_url_pattern = r'https://www.facebook.com/[a-z0-9]+/posts/'
+        
+    for i in soup.find_all('a'):
+        post_url = i.get('href').split("?__cft__[0]")[0]
+        if re.search(post_url_pattern, post_url) is not None:
+            my_time = dateparser.parse(i.get('aria-label'))
+            
+            if my_time <= end_day and my_time >= start_day:
+                post_id = ""
+                try:
+                    post_id = post_url.split("/posts/")[1]
+                    print(post_id)
+                except:
+                    print("Can't get post id")
+                    continue
+                
+                post_mention = crawl_post(post_id, my_time)
+                
+                for i in range(len(post_mention)):
+                    final_infos[i].append(post_mention[i])
+    
+    # Save to file excel
+    folder_name = "/collect_by_searching_keywords"
+    if not os.path.isdir(f"result{folder_name}"):
+        os.makedirs(f"result{folder_name}")
+    
+    post_info = final_infos
+    username_list = post_info[0]
+    userID_list = post_info[1]
+    text_list = post_info[2]
+    like_list = post_info[3]
+    comment_list = post_info[4]
+    share_list = post_info[5]
+    post_url_list = post_info[6]
+    date_list = post_info[7]
+
+    groupID = "https://facebook.com/groups/" + groupID
+    if not os.path.isfile(f"result{folder_name}/{search_kw}.xlsx"):
+        out_dict = {
+            "ID": groupID,
+            "username": username_list,
+            "user_id": userID_list,
+            "text": text_list,
+            "like": like_list,
+            "comment": comment_list,
+            "share": share_list,
+            "post_url": post_url_list,
+            "date": date_list
+        }
+        out_df = pd.DataFrame(out_dict)
+        out_df.to_excel(f"result{folder_name}/{search_kw}.xlsx")
+    else:
+        gg_df = pd.read_excel(f"result{folder_name}/{search_kw}.xlsx",index_col=None)
+        out_dict = {
+            "ID": groupID,
+            "username": username_list,
+            "user_id": userID_list,
+            "text": text_list,
+            "like": like_list,
+            "comment": comment_list,
+            "share": share_list,
+            "post_url": post_url_list,
+            "date": date_list
+        }
+        out_df = pd.DataFrame(out_dict)
+        gg_df = pd.concat([gg_df,out_df],ignore_index=True)
+        gg_df = gg_df.iloc[:,1:]
+        gg_df.to_excel(f"result{folder_name}/{search_kw}.xlsx")
+
+    return 0
 

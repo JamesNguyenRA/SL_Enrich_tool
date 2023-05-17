@@ -81,6 +81,7 @@ class Application(tk.Frame):
         self.label5_entry = tk.Entry()
         self.label5_entry.grid(row=4,column=1)
         tk.Label(text="   ").grid(column=2)
+
         ### Private group 
         self.label7 = tk.Label(text="Private Group",fg='red').grid(row=0,column=3,sticky="w")
         self.label_browse = tk.Label(text=" ")
@@ -108,7 +109,23 @@ class Application(tk.Frame):
         self.label14 = tk.Label(text="End_day(mm/dd/yy)").grid(row=4,column=6)
         self.label14_entry = tk.Entry()
         self.label14_entry.grid(row=4,column=7)
+        tk.Label(text="   ").grid(column=8)
 
+        ### Public post
+        self.label15 = tk.Label(text="Public post",fg='red').grid(row=0,column=9,sticky="w")
+        # self.label_browse = tk.Label(text=" ")
+        # self.label_browse.grid(row=1,column=4)
+        # self.browse_group = tk.Button(text="Choose file",command=lambda: self.browseFiles(self.label_browse)).grid(row=1,column=3,sticky ="w")
+        self.label16 = tk.Label(text="Keyword").grid(row=2,column=9,sticky="w")
+        self.label16_entry = tk.Entry()
+        self.label16_entry.grid(row=2,column=9)
+        self.label17 = tk.Label(text="Start_day(mm/dd/yy)").grid(row=9,column=9)
+        self.label17_entry = tk.Entry()
+        self.label17_entry.grid(row=3,column=9)
+        self.label18 = tk.Label(text="End_day(mm/dd/yy)").grid(row=9,column=9)
+        self.label18_entry = tk.Entry()
+        self.label18_entry.grid(row=4,column=9)
+        tk.Label(text="   ").grid(column=5)
         
 
         self.login_btn = tk.Button(text="Login", bg = "green",command=self.login).grid(row=5,column=1,sticky ="e")
